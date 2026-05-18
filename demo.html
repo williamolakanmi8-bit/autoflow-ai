@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoFlow AI — Live Demo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f0;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      color: #1a1a1a;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .logo {
+      width: 48px;
+      height: 48px;
+      background: #1a1a1a;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      font-size: 22px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #1a1a1a;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid #e8e8e8;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #888;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #444;
+      margin-bottom: 5px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 15px;
+      color: #1a1a1a;
+      background: #fafafa;
+      margin-bottom: 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus, select:focus {
+      border-color: #1a1a1a;
+      background: #fff;
+    }
+
+    input::placeholder { color: #bbb; }
+
+    .workflow-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .workflow-option {
+      border: 1.5px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: #fafafa;
+    }
+
+    .workflow-option.selected {
+      border-color: #1a1a1a;
+      background: #1a1a1a;
+      color: #fff;
+    }
+
+    .workflow-option .wf-icon {
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+
+    .workflow-option .wf-label {
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: #1a1a1a;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    .btn:hover { opacity: 0.85; }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .result-card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid #e8e8e8;
+      padding: 1.5rem;
+      margin-top: 1rem;
+      display: none;
+    }
+
+    .result-card.show { display: block; }
+
+    .result-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #22c55e;
+      flex-shrink: 0;
+    }
+
+    .status-dot.loading {
+      background: #f59e0b;
+      animation: pulse 1s infinite;
+    }
+
+    .status-dot.error { background: #ef4444; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .status-text {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 13px;
+    }
+
+    .result-row:last-child { border-bottom: none; }
+    .result-key { color: #888; }
+    .result-val { font-weight: 500; color: #1a1a1a; }
+
+    .powered {
+      text-align: center;
+      font-size: 12px;
+      color: #bbb;
+      margin-top: 1.5rem;
+    }
+
+    .pipeline-steps {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .step-badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .step-badge.done { background: #dcfce7; color: #166534; }
+    .step-badge.active { background: #fef9c3; color: #854d0e; }
+    .step-badge.pending { background: #f0f0f0; color: #888; }
+
+    .arrow { font-size: 11px; color: #ccc; }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="header">
+      <div class="logo">⚡</div>
+      <h1>AutoFlow AI</h1>
+      <p class="subtitle">Trigger a live AI automation workflow.<br>Watch it classify, route, and execute in real time.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Contact details</div>
+      <label>Full name</label>
+      <input type="text" id="name" placeholder="e.g. Jane Doe" />
+      <label>Email address</label>
+      <input type="email" id="email" placeholder="e.g. jane@company.com" />
+      <label>Company</label>
+      <input type="text" id="company" placeholder="e.g. Acme Corp" />
+      <label>Role (optional)</label>
+      <input type="text" id="role" placeholder="e.g. Head of Operations" />
+    </div>
+
+    <div class="card">
+      <div class="card-title">Select workflow</div>
+      <div class="workflow-options">
+        <div class="workflow-option selected" data-type="new_lead" onclick="selectWorkflow(this)">
+          <div class="wf-icon">🎯</div>
+          <div class="wf-label">New lead</div>
+        </div>
+        <div class="workflow-option" data-type="followup" onclick="selectWorkflow(this)">
+          <div class="wf-icon">📧</div>
+          <div class="wf-label">Follow-up</div>
+        </div>
+        <div class="workflow-option" data-type="contract_signed" onclick="selectWorkflow(this)">
+          <div class="wf-icon">✍️</div>
+          <div class="wf-label">Contract signed</div>
+        </div>
+        <div class="workflow-option" data-type="onboarding" onclick="selectWorkflow(this)">
+          <div class="wf-icon">🚀</div>
+          <div class="wf-label">Onboarding</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn" id="runBtn" onclick="runWorkflow()">Run workflow</button>
+
+    <div class="result-card" id="resultCard">
+      <div class="result-status">
+        <div class="status-dot loading" id="statusDot"></div>
+        <div class="status-text" id="statusText">Processing...</div>
+      </div>
+
+      <div class="pipeline-steps" id="pipelineSteps">
+        <span class="step-badge active" id="step1">Classify</span>
+        <span class="arrow">→</span>
+        <span class="step-badge pending" id="step2">Route</span>
+        <span class="arrow">→</span>
+        <span class="step-badge pending" id="step3">Execute</span>
+        <span class="arrow">→</span>
+        <span class="step-badge pending" id="step4">Log</span>
+      </div>
+
+      <div style="margin-top: 1rem;" id="resultRows"></div>
+    </div>
+
+    <p class="powered">Built by William Olakanmi · AutoFlow AI · Powered by GPT-4o</p>
+
+  </div>
+
+  <script>
+    let selectedType = 'new_lead';
+
+    function selectWorkflow(el) {
+      document.querySelectorAll('.workflow-option').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedType = el.dataset.type;
+    }
+
+    async function runWorkflow() {
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const company = document.getElementById('company').value.trim();
+      const role = document.getElementById('role').value.trim();
+
+      if (!name || !email) {
+        alert('Please enter at least a name and email.');
+        return;
+      }
+
+      const btn = document.getElementById('runBtn');
+      btn.disabled = true;
+      btn.textContent = 'Running...';
+
+      const resultCard = document.getElementById('resultCard');
+      resultCard.classList.add('show');
+      document.getElementById('statusDot').className = 'status-dot loading';
+      document.getElementById('statusText').textContent = 'Sending to AutoFlow AI...';
+      document.getElementById('resultRows').innerHTML = '';
+      resetSteps();
+
+      const payload = {
+        source: 'demo_form',
+        type: selectedType,
+        data: { name, email, company, role, context: 'Triggered via AutoFlow AI live demo form' }
+      };
+
+      try {
+        await animateSteps();
+
+        const REPLIT_URL = window.AUTOFLOW_URL || '';
+
+        let result;
+        if (REPLIT_URL) {
+          const res = await fetch(`${REPLIT_URL}/webhook`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          result = await res.json();
+        } else {
+          await new Promise(r => setTimeout(r, 500));
+          result = { status: 'queued', source: 'demo_form', type: selectedType };
+        }
+
+        document.getElementById('statusDot').className = 'status-dot';
+        document.getElementById('statusText').textContent = 'Workflow triggered successfully';
+
+        const rows = [
+          ['Status', result.status || 'queued'],
+          ['Workflow', selectedType.replace(/_/g, ' ')],
+          ['Contact', name],
+          ['Email', email],
+          ['Company', company || '—'],
+          ['Agent', getAgent(selectedType)],
+          ['Est. cost', '$0.004'],
+        ];
+
+        document.getElementById('resultRows').innerHTML = rows.map(([k, v]) =>
+          `<div class="result-row"><span class="result-key">${k}</span><span class="result-val">${v}</span></div>`
+        ).join('');
+
+      } catch (err) {
+        document.getElementById('statusDot').className = 'status-dot error';
+        document.getElementById('statusText').textContent = 'Could not reach server — demo mode';
+        document.getElementById('resultRows').innerHTML =
+          `<div class="result-row"><span class="result-key">Note</span><span class="result-val">Add your Replit URL to go live</span></div>`;
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Run workflow';
+    }
+
+    function getAgent(type) {
+      if (type === 'new_lead' || type === 'followup') return 'Outreach agent';
+      if (type === 'contract_signed') return 'CRM agent';
+      return 'Ops agent';
+    }
+
+    function resetSteps() {
+      ['step1','step2','step3','step4'].forEach((id, i) => {
+        const el = document.getElementById(id);
+        el.className = 'step-badge ' + (i === 0 ? 'active' : 'pending');
+      });
+    }
+
+    async function animateSteps() {
+      const steps = ['step1','step2','step3','step4'];
+      for (let i = 0; i < steps.length; i++) {
+        await new Promise(r => setTimeout(r, 600));
+        if (i > 0) document.getElementById(steps[i-1]).className = 'step-badge done';
+        if (i < steps.length) document.getElementById(steps[i]).className = 'step-badge active';
+      }
+      await new Promise(r => setTimeout(r, 400));
+      document.getElementById(steps[steps.length-1]).className = 'step-badge done';
+    }
+  </script>
+</body>
+</html>
